@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  googleId      String    @unique
+  image         String?
+  projects      Project[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Project {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clips         Clip[]
+  exports       Export[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Clip {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceUrl     String
+  sourceType    SourceType @default(YOUTUBE)
+  startTime     Float
+  endTime       Float
+  order         Int
+  title         String?
+  createdAt     DateTime  @default(now())
+}
+
+model Export {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  status        ExportStatus @default(PENDING)
+  userId        String
+  priority      Int       @default(0)
+  format        String
+  outputUrl     String?
+  driveFileId   String?
+  removeAudio   Boolean   @default(false)
+  customAudioUrl String?
+  slackNotified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  completedAt   DateTime?
+  
+  @@index([userId, status])
+  @@index([status, priority])
+  @@index([createdAt])
+}
+
+enum SourceType {
+  YOUTUBE
+  GOOGLE_DRIVE
+}
+
+enum ExportStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+

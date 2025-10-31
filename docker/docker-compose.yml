@@ -1,0 +1,106 @@
+version: '3.8'
+
+services:
+  # Aplicación Next.js
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:password@postgres:5432/videodb
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../uploads:/app/uploads
+      - ../temp:/app/temp
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+
+  # Worker para procesamiento de video
+  worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.worker
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://user:password@postgres:5432/videodb
+      - REDIS_URL=redis://redis:6379
+      - CONCURRENT_JOBS=3
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../uploads:/app/uploads
+      - ../temp:/app/temp
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '4'
+          memory: 8G
+
+  # Base de datos PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=videodb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # Redis para colas y caché
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --maxmemory 2gb --maxmemory-policy lru
+
+  # Nginx como reverse proxy y load balancer
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ../ssl:/etc/nginx/ssl
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # MinIO para almacenamiento compatible con S3
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+

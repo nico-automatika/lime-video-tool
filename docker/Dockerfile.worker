@@ -1,0 +1,30 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar FFmpeg y dependencias
+RUN apk add --no-cache \
+    ffmpeg \
+    python3 \
+    make \
+    g++ \
+    libc6-compat
+
+# Copiar archivos de dependencias
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Instalar todas las dependencias
+RUN npm ci
+RUN npx prisma generate
+
+# Copiar código fuente
+COPY . .
+
+# Crear directorios para procesamiento
+RUN mkdir -p /app/uploads /app/temp /app/output && \
+    chmod -R 777 /app/uploads /app/temp /app/output
+
+# Script para el worker
+CMD ["npm", "run", "worker"]
+

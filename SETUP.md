@@ -2,6 +2,13 @@
 
 ## Variables de Entorno Requeridas
 
+**📌 Ubicación del archivo `.env`:**
+
+- **Desarrollo Local**: `lime-video-tool/.env` (raíz del proyecto)
+- **Docker Compose**: `lime-video-tool/.env` (misma raíz, Docker lo lee automáticamente)
+
+Ver `ENV-GUIDE.md` para detalles completos sobre configuración de variables de entorno.
+
 Crea un archivo `.env` en la raíz del proyecto con las siguientes variables:
 
 ```env

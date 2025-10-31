@@ -8,9 +8,11 @@ services:
       dockerfile: docker/Dockerfile.app
     ports:
       - "3000:3000"
+    env_file:
+      - ../.env
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:password@postgres:5432/videodb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-videodb}
       - REDIS_URL=redis://redis:6379
     depends_on:
       - postgres
@@ -30,11 +32,13 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.worker
+    env_file:
+      - ../.env
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:password@postgres:5432/videodb
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-user}:${POSTGRES_PASSWORD:-password}@postgres:5432/${POSTGRES_DB:-videodb}
       - REDIS_URL=redis://redis:6379
-      - CONCURRENT_JOBS=3
+      - CONCURRENT_JOBS=${CONCURRENT_JOBS:-3}
     depends_on:
       - postgres
       - redis
@@ -53,9 +57,9 @@ services:
   postgres:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=videodb
+      - POSTGRES_USER=${POSTGRES_USER:-user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_DB:-videodb}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

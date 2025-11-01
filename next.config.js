@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: {
-      bodySizeLimit: '50mb',
-    },
-  },
+  // Usar webpack explícitamente (Turbopack es el default en Next.js 16)
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
@@ -15,6 +11,13 @@ const nextConfig = {
       };
     }
     return config;
+  },
+  // Configuración de Turbopack como fallback
+  turbopack: {},
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
   },
 };
 

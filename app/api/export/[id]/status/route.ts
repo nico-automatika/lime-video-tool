@@ -5,16 +5,17 @@ import { prisma } from '@/lib/db';
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const exportRecord = await prisma.export.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!exportRecord || exportRecord.userId !== session.user.id) {

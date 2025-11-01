@@ -43,3 +43,6 @@ prisma/migrations
 /temp
 /output
 
+# Docker volumes
+/docker-volumes
+

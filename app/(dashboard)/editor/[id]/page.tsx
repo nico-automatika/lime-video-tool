@@ -7,8 +7,9 @@ import VideoEditor from '@/components/video/VideoEditor';
 export default async function EditorPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const session = await getServerSession(authOptions);
   
   if (!session?.user?.id) {
@@ -16,7 +17,7 @@ export default async function EditorPage({
   }
 
   const project = await prisma.project.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       clips: { orderBy: { order: 'asc' } },
     },

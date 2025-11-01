@@ -2,8 +2,9 @@
 
 import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/projects';
 
@@ -21,6 +22,18 @@ export default function LoginPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   );
 }
 

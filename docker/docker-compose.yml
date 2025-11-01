@@ -18,8 +18,8 @@ services:
       - postgres
       - redis
     volumes:
-      - ../uploads:/app/uploads
-      - ../temp:/app/temp
+      - ../docker-volumes/lime-video-tool/uploads:/app/uploads
+      - ../docker-volumes/lime-video-tool/temp:/app/temp
     restart: unless-stopped
     deploy:
       resources:
@@ -43,8 +43,8 @@ services:
       - postgres
       - redis
     volumes:
-      - ../uploads:/app/uploads
-      - ../temp:/app/temp
+      - ../docker-volumes/lime-video-tool/uploads:/app/uploads
+      - ../docker-volumes/lime-video-tool/temp:/app/temp
     restart: unless-stopped
     deploy:
       replicas: 2
@@ -61,20 +61,20 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
       - POSTGRES_DB=${POSTGRES_DB:-videodb}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ../docker-volumes/lime-video-tool/postgres:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "5433:5432"
     restart: unless-stopped
 
   # Redis para colas y caché
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
     volumes:
-      - redis_data:/data
+      - ../docker-volumes/lime-video-tool/redis:/data
     restart: unless-stopped
-    command: redis-server --maxmemory 2gb --maxmemory-policy lru
+    command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru
 
   # Nginx como reverse proxy y load balancer
   nginx:
@@ -99,12 +99,10 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     volumes:
-      - minio_data:/data
+      - ../docker-volumes/lime-video-tool/minio:/data
     command: server /data --console-address ":9001"
     restart: unless-stopped
 
-volumes:
-  postgres_data:
-  redis_data:
-  minio_data:
+# Los volúmenes ahora son bind mounts en docker-volumes/lime-video-tool/
+# No se necesitan volúmenes nombrados
 
